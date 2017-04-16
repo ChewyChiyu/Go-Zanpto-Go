@@ -68,7 +68,7 @@ public class Characters{
 		Thread jumping = new Thread(new Runnable(){
 			public void run(){
 				for(int index = 0 ; index < 200; index++){ //some random time
-					changeY(-speed); //just a little jump LOL
+					changeY((int)(-speed*1.5)); //just a little jump LOL
 					try{
 						Thread.sleep(1); //holds thread for gravity
 					}catch(Exception e){

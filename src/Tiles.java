@@ -17,7 +17,7 @@ public class Tiles {
 		this.width = width;
 		this.height = height;
 		this.sprite = sprite;
-		xVelocity = -3;
+		xVelocity = -5;
 	}
 	public void draw(Graphics g, int x , int y ){
 		g.drawImage(sprite, x, y, width,height, null);
