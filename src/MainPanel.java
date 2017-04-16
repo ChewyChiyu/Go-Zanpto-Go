@@ -25,7 +25,7 @@ public class MainPanel extends JPanel implements Runnable{
 	final int GRAVITY = 3;
 	final int WIDTH = Toolkit.getDefaultToolkit().getScreenSize().width;
 	final int HEIGHT = Toolkit.getDefaultToolkit().getScreenSize().height;
-	final int PUSHBACK = 75;
+	final int PUSHBACK = 100;
 	final int BUFFER = 5;
 	public Zanpto player = new Zanpto(0,(int)(HEIGHT*.3));
 	boolean isRunning;
@@ -37,7 +37,72 @@ public class MainPanel extends JPanel implements Runnable{
 		openImg();
 		setUpMap();
 		start();
+		setUpCheckSystem();
 		repaint();
+	}
+	public void setUpCheckSystem(){
+		Thread check = new Thread(new Runnable(){
+			public void run(){
+				while(isRunning){
+					boolean onGround = false;
+					for(int index = 0; index < blocks.size(); index++){
+						Tiles t = blocks.get(index);
+						if(t.getType().equals(ObjectType.CLOUD)){
+							continue;
+						}
+						if((player.getY()==t.getY()||player.getY()+player.getHeight()-BUFFER>t.getY()&&player.getY()+player.getHeight()-BUFFER<t.getY()+t.getHeight())&&player.getX()+player.getWidth()+BUFFER>t.getX()&&player.getX()+player.getWidth()-BUFFER<t.getX()){//5 pixel buffer
+							player.changeX(-PUSHBACK);
+						}
+						try{
+							Thread.sleep(1);
+						}catch(Exception e){
+
+						}
+					}
+					for(int index2 = 0 ; index2 < blocks.size(); index2++){
+						//						if(onGround)
+						//							continue;
+						Tiles t3 = blocks.get(index2);
+						if(t3.getType().equals(ObjectType.CLOUD)){
+							continue;
+						}
+						int tileX1 = t3.getX()-BUFFER; //5 pixel buffer
+						int tileX2 = t3.getX()+t3.getWidth()+BUFFER; //5 pixel buffer
+						int tileY1 = t3.getY();
+						if(player.getX()>tileX1&&player.getX()<tileX2&&((player.getY()+player.getHeight())>tileY1&&player.getY()+player.getHeight()<t3.getY()+20)){ // 20 pixel buffer
+							onGround = true;
+						}	
+					}
+					if(onGround){
+						player.changeYVelocity(0);
+						player.onGround();
+					}else{
+						player.changeYVelocity(GRAVITY*2);
+						player.toAir();
+					}
+
+					if(player.getX()<(int)(WIDTH*.4)){
+						player.changeXVelocity(player.getSpeed()*3);
+					}else{
+						player.changeXVelocity(0);
+					}
+					//Physics buffer ~
+					for(int index2 = 0; index2 < blocks.size(); index2++){
+						Tiles t2 = blocks.get(index2);
+
+						if(!player.inAir()&&player.getY()+player.getHeight()-BUFFER>t2.getY()&&player.getX()>t2.getX()&&player.getX()<t2.getX()+t2.getWidth()){ 
+							player.changeYVelocity(-1); 
+						}
+						if(player.inAir()&&player.getY()+player.getHeight()!=t2.getY()&&player.getX()>t2.getX()&&player.getX()<t2.getX()+t2.getWidth()){
+							player.changeXVelocity(-1);
+						}	
+					}
+				}
+			}
+
+		});
+		check.start();
+
 	}
 	public void setUpMap(){
 		//Blocks hard coded due to not interfering with screen size
@@ -53,7 +118,7 @@ public class MainPanel extends JPanel implements Runnable{
 
 		xBuffer+=200;
 		yBuffer+=100;
-		
+
 		for(int i = 0; i < 12; i++){
 			blocks.add(new Tiles(ObjectType.GRASS,xBuffer+=100,yBuffer,100,100,blocksSprites[0]));
 		}
@@ -154,68 +219,17 @@ public class MainPanel extends JPanel implements Runnable{
 				blocks.add(new Tiles(ObjectType.GRASS,WIDTH,currentWorldY,100,100,blocksSprites[0]));
 				if((int)(Math.random()*5)==2)// 1/5 chance
 					currentWorldY = ((int)(Math.random()*2)==1)?(currentWorldY+=50):(currentWorldY-=100);
-				if((int)(Math.random()*5)==2)// 1/5 chance
-					blocks.add(new Tiles(ObjectType.CLOUD,WIDTH,(int)(Math.random()*500),100,100,blocksSprites[4]));
-			
-				if(currentWorldY<0||currentWorldY>HEIGHT)
-					currentWorldY = (int) (HEIGHT*.9);
-			
+					if((int)(Math.random()*5)==2)// 1/5 chance
+						blocks.add(new Tiles(ObjectType.CLOUD,WIDTH,(int)(Math.random()*500),100,100,blocksSprites[4]));
+
+					if(currentWorldY<0||currentWorldY>HEIGHT)
+						currentWorldY = (int) (HEIGHT*.9);
+
 			}
 		}
 	}
 	public void updatePlayerLocation(){
-		boolean onGround = false;
-		for(int index = 0 ; index < blocks.size(); index++){
-			if(onGround)
-				continue;
-			Tiles t = blocks.get(index);
-			if(t.getType().equals(ObjectType.CLOUD)){
-				continue;
-			}
-			int tileX1 = t.getX()-BUFFER; //5 pixel buffer
-			int tileX2 = t.getX()+t.getWidth()+BUFFER; //5 pixel buffer
-			int tileY1 = t.getY();
-			
 
-			if(player.getY()+player.getHeight()>t.getY()&&player.getY()+player.getHeight()<t.getY()+t.getHeight()&&player.getX()+player.getWidth()+BUFFER>t.getX()&&player.getX()+player.getWidth()-BUFFER<t.getX()){//5 pixel buffer
-				player.changeX(-PUSHBACK); // 25 block push back
-			}
-			
-			
-			
-			if(player.getX()>tileX1&&player.getX()<tileX2&&((player.getY()+player.getHeight())>tileY1&&player.getY()+player.getHeight()<t.getY()+20)){ // 20 pixel buffer
-				onGround = true;
-			}	
-			
-			
-		}
-
-		if(onGround){
-			player.changeYVelocity(0);
-			player.onGround();
-		}else{
-			player.changeYVelocity(GRAVITY);
-			player.toAir();
-		}
-		
-		if(player.getX()<(int)(WIDTH*.4)){
-			player.changeXVelocity(player.getSpeed());
-		}else{
-			player.changeXVelocity(0);
-		}
-
-		//Physics buffer ~
-				for(int index = 0; index < blocks.size(); index++){
-					Tiles t = blocks.get(index);
-					
-					if(!player.inAir()&&player.getY()+player.getHeight()-BUFFER>t.getY()&&player.getX()>t.getX()&&player.getX()<t.getX()+t.getWidth()){ 
-						player.changeYVelocity(-1); 
-					}
-					if(player.inAir()&&player.getY()+player.getHeight()!=t.getY()&&player.getX()>t.getX()&&player.getX()<t.getX()+t.getWidth()){
-						player.changeXVelocity(-1);
-					}
-					
-				}
 		player.changeY(player.getYVelocity());
 		player.changeX(player.getXVelocity());
 	}
