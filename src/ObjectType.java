@@ -1,4 +1,4 @@
 
 public enum ObjectType {
-	ZANPTO, GRASS, DIRT, CLOUD, ROOT, CRATE;
+	ZANPTO,GRASS, CLOUD, DIRT,CRATE,ROOTS;
 }

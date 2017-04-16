@@ -11,6 +11,7 @@ import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 @SuppressWarnings("serial")
@@ -41,26 +42,19 @@ public class MainPanel extends JPanel implements Runnable{
 		int xBuffer=0;
 		int yBuffer = (int)(HEIGHT*.62);
 
+		for(int i = 0; i < 5; i++){
+			blocks.add(new Tiles(ObjectType.GRASS,xBuffer+=100,yBuffer,100,100,blocksSprites[0]));
+		}
 
-
-		blocks.add(new Tiles(ObjectType.GRASS,xBuffer+=100,yBuffer,100,100,blocksSprites[0]));
-		blocks.add(new Tiles(ObjectType.GRASS,xBuffer+=100,yBuffer,100,100,blocksSprites[0]));
-		blocks.add(new Tiles(ObjectType.GRASS,xBuffer+=100,yBuffer,100,100,blocksSprites[0]));
-		blocks.add(new Tiles(ObjectType.GRASS,xBuffer+=100,yBuffer,100,100,blocksSprites[0]));
-		blocks.add(new Tiles(ObjectType.GRASS,xBuffer+=100,yBuffer,100,100,blocksSprites[0]));
 		//random cloud lol
 		blocks.add(new Tiles(ObjectType.CLOUD,xBuffer,yBuffer-250,200,100,blocksSprites[4]));
 
 		xBuffer+=200;
 		yBuffer+=100;
-		blocks.add(new Tiles(ObjectType.GRASS,xBuffer+=100,yBuffer,100,100,blocksSprites[0]));
-		blocks.add(new Tiles(ObjectType.GRASS,xBuffer+=100,yBuffer,100,100,blocksSprites[0]));
-		blocks.add(new Tiles(ObjectType.GRASS,xBuffer+=100,yBuffer,100,100,blocksSprites[0]));
-		blocks.add(new Tiles(ObjectType.GRASS,xBuffer+=100,yBuffer,100,100,blocksSprites[0]));
-		blocks.add(new Tiles(ObjectType.GRASS,xBuffer+=100,yBuffer,100,100,blocksSprites[0]));
-		blocks.add(new Tiles(ObjectType.GRASS,xBuffer+=100,yBuffer,100,100,blocksSprites[0]));
-		blocks.add(new Tiles(ObjectType.GRASS,xBuffer+=100,yBuffer,100,100,blocksSprites[0]));
-
+		
+		for(int i = 0; i < 12; i++){
+			blocks.add(new Tiles(ObjectType.GRASS,xBuffer+=100,yBuffer,100,100,blocksSprites[0]));
+		}
 		currentWorldY = yBuffer;
 
 	}
@@ -131,7 +125,22 @@ public class MainPanel extends JPanel implements Runnable{
 	public void updatePanel(){
 		updatePlayerLocation();
 		updateTileLocation();
+		checkIfFall();
 		repaint();
+	}
+	public void checkIfFall(){
+		if(player.getY()>HEIGHT){
+			int reply = JOptionPane.showConfirmDialog(null, "You Fell!" + "\n Play Again?" , "Lose", JOptionPane.YES_NO_OPTION);
+			if (reply == JOptionPane.YES_OPTION) {
+				player =  new Zanpto(0,(int)(HEIGHT*.3));
+				blocks.clear();
+				setUpMap();
+				return;
+			}
+			else {
+				System.exit(0);
+			}
+		}
 	}
 	public void updateTileLocation(){
 		for(int index = 0 ; index < blocks.size(); index++){
@@ -145,6 +154,10 @@ public class MainPanel extends JPanel implements Runnable{
 					currentWorldY = ((int)(Math.random()*2)==1)?(currentWorldY+=100):(currentWorldY-=100);
 				if((int)(Math.random()*20)==10)// 1/20 chance
 					blocks.add(new Tiles(ObjectType.CLOUD,WIDTH,(int)(Math.random()*500),100,100,blocksSprites[4]));
+			
+				if(currentWorldY<0||currentWorldY>HEIGHT)
+					currentWorldY = (int) (HEIGHT*.9);
+			
 			}
 		}
 	}
@@ -158,10 +171,13 @@ public class MainPanel extends JPanel implements Runnable{
 			int tileX2 = t.getX()+t.getWidth();
 			int tileY1 = t.getY();
 
-			if(player.getX()>tileX1&&player.getX()<tileX2&&(player.getY()+player.getHeight())>tileY1){
+			if(player.getX()>tileX1&&player.getX()<tileX2&&((player.getY()+player.getHeight())>tileY1&&player.getY()+player.getHeight()<t.getY()+20)){ // 20 pixel buffer
 				onGround = true;
 			}	
+			
+			
 		}
+
 		if(onGround){
 			player.changeYVelocity(0);
 			player.onGround();
@@ -169,7 +185,12 @@ public class MainPanel extends JPanel implements Runnable{
 			player.changeYVelocity(GRAVITY);
 			player.toAir();
 		}
-
+		for(int index = 0; index < blocks.size(); index++){
+			Tiles t = blocks.get(index);
+			if(!player.inAir()&&player.getY()+player.getHeight()-2>t.getY()&&player.getX()>t.getX()&&player.getX()<t.getX()+t.getWidth()){
+				player.changeYVelocity(-1);
+			}
+		}
 		if(player.getX()<(int)(WIDTH*.4)){
 			player.changeXVelocity(player.getSpeed());
 		}else{

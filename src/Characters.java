@@ -101,7 +101,7 @@ public class Characters{
 		if(!inAir){
 		g.drawImage(walk[motionRotation], x, y,100,100, null);
 		}else{
-			g.drawImage(jump[motionRotation], x, y,100,100, null);
+			g.drawImage(jump[motionRotation], x, y,110,110, null); // a little larger
 		}
 	}
 	public int getX(){
