@@ -25,7 +25,7 @@ public class MainPanel extends JPanel implements Runnable{
 	final int GRAVITY = 3;
 	final int WIDTH = Toolkit.getDefaultToolkit().getScreenSize().width;
 	final int HEIGHT = Toolkit.getDefaultToolkit().getScreenSize().height;
-	final int PUSHBACK = 65;
+	final int PUSHBACK = 35;
 	final int BUFFER = 15;
 	public Zanpto player = new Zanpto(0,(int)(HEIGHT*.3));
 	boolean isRunning;
